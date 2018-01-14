@@ -3,13 +3,17 @@ namespace Arena.State {
     private you: player;
     private opponent: player;
     private character1: Arena.Characters.character;
-    private static description_name: Phaser.Text;
-    private static description: Phaser.Text;
-    private static descriptionImage: Phaser.Sprite;
     private turn_text: Phaser.Text;
     private chakra: Chakra;
 
-    public preload(): void {
+    private static description_name: Phaser.Text;
+    private static description: Phaser.Text;
+    private static descriptionImage: Phaser.Sprite;
+
+    private static cost_images: Phaser.Group;
+    private static cost_text: Phaser.Text;
+
+    preload(): void {
       this.you = new player(
         Arena.Global.connectionDetails,
         Arena.Global.Constants.char1,
@@ -49,6 +53,7 @@ namespace Arena.State {
       this.you.deploySkills(this.game);
 
       Play.initDescription(this);
+      Play.initCost(this.game);
 
       this.game.stage.disableVisibilityChange = true; //не паузим игру в фоне
 
@@ -56,6 +61,7 @@ namespace Arena.State {
       this.chakra.addChakraUI(this.game);
 
       this.initTurnText();
+      if (Global.connectionDetails.turn == false) this.you.blockAllCharacters();
       this.onTurnSwitch();
     }
 
@@ -75,6 +81,7 @@ namespace Arena.State {
         Global.connectionDetails.turn = !Global.connectionDetails.turn;
         this.turn_text.setText(this.turnTextResolve());
         this.turn_text.inputEnabled = Global.connectionDetails.turn;
+        this.you.blockAllCharacters();
       }, this);
 
       Global.socket.on("turn-switch", () => {
@@ -83,6 +90,7 @@ namespace Arena.State {
         this.turn_text.inputEnabled = Global.connectionDetails.turn;
         this.chakra.addTurnChakra();
         this.chakra.updateUI();
+        this.you.unblockAllCharacters();
       });
     }
 
@@ -126,6 +134,52 @@ namespace Arena.State {
         Global.Constants.descImageY,
         object.getName
       );
+    }
+
+    public static initCost(game: Phaser.Game) {
+      this.cost_text = game.add.text(
+        Global.Constants.descX + 290,
+        Global.Constants.descTitleY,
+        "ENERGY:",
+        Global.Constants.style_black_small
+      );
+      this.cost_text.alpha = 0.7;
+      this.cost_text.visible = false;
+      this.cost_images = game.add.group();
+    }
+
+    public static disableCost() {
+      Arena.State.Play.cost_text.visible = false;
+      Arena.State.Play.cost_images.visible = false;
+    }
+
+    public static enableCost() {
+      Arena.State.Play.cost_text.visible = true;
+    }
+
+    public static updateCost(cost: Array<number>, game: Phaser.Game) {
+      let images: Array<Phaser.Sprite>;
+      images = [];
+      for (let i = 0; i < cost.length; i++) {
+        let chakra_needed = cost[i];
+        while (chakra_needed > 0) {
+          images.push(game.add.sprite(0, 0, Chakra.chakraResolve(i)));
+          chakra_needed--;
+          console.log(cost.length);
+        }
+      }
+
+      if (images.length != 0) {
+        this.cost_images.destroy();
+        this.cost_images = game.add.group();
+        this.cost_images.add(images[0]);
+        for (let i = 1; i < images.length; i++) {
+          images[i].alignTo(images[i - 1], Phaser.RIGHT_TOP, 5);
+          this.cost_images.add(images[i]);
+        }
+      }
+
+      this.cost_images.alignTo(this.cost_text, Phaser.RIGHT_TOP, 5, -2);
     }
   }
 }

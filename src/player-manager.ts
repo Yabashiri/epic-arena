@@ -119,14 +119,24 @@ namespace Arena {
           `${this.characters[i].getName}-${j}`
         ));
         this.characters[i].skills_list[0].addTapEvent(game);
+        this.characters[i].skills_list[0].eventCost(game);
         for (j = 1; j < 4; j++) {
           skill = this.characters[i].skills_list[j].setSprite = game.add
             .sprite(0, 0, `${this.characters[i].getName}-${j}`)
             .alignTo(skill, Phaser.RIGHT_TOP, 8);
           this.characters[i].skills_list[j].addTapEvent(game);
+          this.characters[i].skills_list[j].eventCost(game);
         }
         y += Global.Constants.skillDistanceY;
       }
+    }
+
+    public blockAllCharacters(): void {
+      for (let i = 0; i <= 2; i++) this.characters[i].blockSkills();
+    }
+
+    public unblockAllCharacters(): void {
+      for (let i = 0; i <= 2; i++) this.characters[i].unblockSkills();
     }
   }
 }

@@ -20,7 +20,6 @@ namespace Arena {
 
     public addRandomChakra(): void {
       this.value[this.generateRandomChakra()]++;
-      console.log(this.value);
     }
 
     public addTurnChakra(): void {
@@ -94,6 +93,23 @@ namespace Arena {
       this.ninText.setText("x" + this.value[2]);
       this.genText.setText("x" + this.value[3]);
       this.randomText.setText("x" + this.getTotalChakra());
+    }
+
+    public static chakraResolve(n: number): string {
+      switch (n) {
+        case 0:
+          return "tai";
+        case 1:
+          return "blood";
+        case 2:
+          return "nin";
+        case 3:
+          return "gen";
+        case 4:
+          return "random";
+        default:
+          return "random";
+      }
     }
   }
 }

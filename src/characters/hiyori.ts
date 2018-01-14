@@ -13,7 +13,8 @@ namespace Arena.Characters {
           0,
           "hiyori",
           "Flying Kick",
-          "Hiyori kicks the shit out of the enemy."
+          "Hiyori kicks the shit out of the enemy.",
+          [0, 1]
         )
       );
       this.skills_list.push(
@@ -21,7 +22,8 @@ namespace Arena.Characters {
           1,
           "hiyori",
           "Serpent Strike",
-          "Hiyori unleashes her shikai, Kubikiri Orochi."
+          "Hiyori unleashes her shikai, Kubikiri Orochi.",
+          [0, 1, 0, 0, 1]
         )
       );
       this.skills_list.push(
@@ -29,7 +31,8 @@ namespace Arena.Characters {
           2,
           "hiyori",
           "Sweeping Cero",
-          "Hiyori unleashes a powerful cero."
+          "Hiyori unleashes a powerful cero.",
+          [0, 0, 1, 0, 1]
         )
       );
       this.skills_list.push(
@@ -37,7 +40,8 @@ namespace Arena.Characters {
           3,
           "hiyori",
           "Serpent Parry",
-          "Hiyori parries one enemy's attack."
+          "Hiyori parries one enemy's attack.",
+          [0, 0, 0, 0, 1]
         )
       );
     }

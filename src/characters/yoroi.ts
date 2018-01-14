@@ -8,14 +8,27 @@ namespace Arena.Characters {
       this.skills_number = 4;
 
       this.skills_list.push(
-        new skill(0, "yoroi", "Chidori", "Yoroi is the best.")
-      );
-      this.skills_list.push(new skill(1, "yoroi", "Kirin", "No, seriously."));
-      this.skills_list.push(
-        new skill(2, "yoroi", "Sharingan", "You should respect him.")
+        new skill(0, "yoroi", "Chidori", "Yoroi is the best.", [0, 0, 0, 1])
       );
       this.skills_list.push(
-        new skill(3, "yoroi", "Vodovorot", "Oh my god he is so shitty...")
+        new skill(1, "yoroi", "Kirin", "No, seriously.", [0, 0, 0, 2])
+      );
+      this.skills_list.push(
+        new skill(2, "yoroi", "Sharingan", "You should respect him.", [
+          1,
+          1,
+          0,
+          1
+        ])
+      );
+      this.skills_list.push(
+        new skill(3, "yoroi", "Vodovorot", "Oh my god he is so shitty...", [
+          0,
+          0,
+          0,
+          0,
+          1
+        ])
       );
     }
   }

@@ -87,6 +87,18 @@ namespace Arena.Characters {
         true
       );
     }
+
+    public blockSkills(): void {
+      for (let i = 0; i < this.skills_number; i++) {
+        this.skills_list[i].lowerOpacity();
+      }
+    }
+
+    public unblockSkills(): void {
+      for (let i = 0; i < this.skills_number; i++) {
+        this.skills_list[i].restoreOpacity();
+      }
+    }
   }
 
   export enum character_state {

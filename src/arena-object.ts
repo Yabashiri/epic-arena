@@ -30,8 +30,12 @@ namespace Arena {
         Global.Constants.descImageY,
         this.name
       );
+
       this.sprite.events.onInputDown.add(() => {
         Arena.State.Play.updateDescription(this, game);
+        if (this instanceof Arena.Characters.skill)
+          Arena.State.Play.enableCost();
+        else Arena.State.Play.disableCost();
       });
     }
   }
