@@ -6,6 +6,8 @@ namespace Arena.State {
     private static description_name: Phaser.Text;
     private static description: Phaser.Text;
     private static descriptionImage: Phaser.Sprite;
+    private turn_text: Phaser.Text;
+    private chakra: Chakra;
 
     public preload(): void {
       this.you = new player(
@@ -23,14 +25,23 @@ namespace Arena.State {
         Arena.Global.Constants.char3
       );
       this.opponent.preloadImages(this.game);
+      this.preloadChakra();
 
       this.game.load.image("battle", "assets/battle1.jpg");
       this.game.load.image("pokemon", "assets/pokemon.png");
     }
 
+    private preloadChakra(): void {
+      this.game.load.image("tai", "assets/chakra/tai.png");
+      this.game.load.image("blood", "assets/chakra/blood.png");
+      this.game.load.image("nin", "assets/chakra/nin.png");
+      this.game.load.image("gen", "assets/chakra/gen.png");
+      this.game.load.image("random", "assets/chakra/random.png");
+    }
+
     public create(): void {
       this.game.stage.backgroundColor = "#fff";
-      //this.game.add.image(0, 0, 'battle');
+      //this.game.add.image(0, 0, "battle");
       this.game.add.image(0, 0, "pokemon");
 
       this.you.deployPortraits(this.game, "left");
@@ -40,27 +51,44 @@ namespace Arena.State {
       Play.initDescription(this);
 
       this.game.stage.disableVisibilityChange = true; //не паузим игру в фоне
-      const text = this.game.add.text(
-        330,
+
+      this.chakra = new Chakra(); //если игрок ходит первый, то начнёт с одной чакрой
+      this.chakra.addChakraUI(this.game);
+
+      this.initTurnText();
+      this.onTurnSwitch();
+    }
+
+    public initTurnText(): void {
+      this.turn_text = this.game.add.text(
+        325,
         10,
-        "PRESS WHEN READY",
+        this.turnTextResolve(),
         Global.Constants.style_black
       );
+      this.turn_text.inputEnabled = Global.connectionDetails.turn;
+    }
 
-      text.inputEnabled = true;
-      text.events.onInputUp.add(() => {
-        this.you.damage(this.game, 0);
-        /*Global.socket.emit('turn-switch', Global.connectionDetails.opponentID);
-                Global.connectionDetails.turn = !Global.connectionDetails.turn;
-                text.setText("OPPONENT\'S TURN");
-                text.inputEnabled = false;
-            },this);
+    public onTurnSwitch(): void {
+      this.turn_text.events.onInputUp.add(() => {
+        Global.socket.emit("turn-switch", Global.connectionDetails.opponentID);
+        Global.connectionDetails.turn = !Global.connectionDetails.turn;
+        this.turn_text.setText(this.turnTextResolve());
+        this.turn_text.inputEnabled = Global.connectionDetails.turn;
+      }, this);
 
-            Global.socket.on("turn-switch", () => {
-                text.setText("PRESS WHEN READY");
-                Global.connectionDetails.turn = !Global.connectionDetails.turn;
-                text.inputEnabled = true;*/
+      Global.socket.on("turn-switch", () => {
+        Global.connectionDetails.turn = !Global.connectionDetails.turn;
+        this.turn_text.setText(this.turnTextResolve());
+        this.turn_text.inputEnabled = Global.connectionDetails.turn;
+        this.chakra.addTurnChakra();
+        this.chakra.updateUI();
       });
+    }
+
+    public turnTextResolve(): string {
+      if (Global.connectionDetails.turn == true) return "PRESS WHEN READY";
+      else return "OPPONENT'S TURN";
     }
 
     public static initDescription(play: Arena.State.Play): void {

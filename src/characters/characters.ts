@@ -68,7 +68,6 @@ namespace Arena.Characters {
       this.sprite.maxHealth = 100;
       this.sprite.health = 100;
       this.health_bar = new healthbar(game, x, y);
-      console.log(x + " " + y);
       this.health_bar.setPercent(100);
       this.health_text = game.add.text(
         x,
