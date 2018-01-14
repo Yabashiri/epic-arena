@@ -1,5 +1,5 @@
 namespace Arena.Global {
-    export let socket: SocketIOClient.Socket;
+  export let socket: SocketIOClient.Socket;
 
-    export let connectionDetails: IConnectionDetails;
+  export let connectionDetails: IConnectionDetails;
 }

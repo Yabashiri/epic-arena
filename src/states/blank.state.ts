@@ -1,14 +1,7 @@
 namespace Arena.State {
+  export class Blank extends Phaser.State {
+    public preload(): void {}
 
-    export class Blank extends Phaser.State {
-
-        public preload(): void {
-            
-        }
-
-        public create(): void {
-
-            
-        }
-    }
+    public create(): void {}
+  }
 }

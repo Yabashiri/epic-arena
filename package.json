@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/dolanmiu/flappy-bird-client#readme",
   "dependencies": {
+    "@types/node": "^9.3.0",
     "phaser": "^2.6.2"
   },
   "devDependencies": {
