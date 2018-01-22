@@ -40,7 +40,7 @@ jspm_packages
 .vscode
 
 # Typings
-Typings
+typings.json
 
 # Build
 # dist
