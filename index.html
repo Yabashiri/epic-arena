@@ -2,16 +2,15 @@
     <title>Epic Arena Online</title>
 
     <style type="text/css">
-        div { 
-         width: 770px;
+        div {
+            width: 770px;
         }
-       </style>
+    </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/2.6.2/phaser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/css/bootstrap.min.css">
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/js/bootstrap.min.js"></script>
     <script src="https://use.fontawesome.com/2f5179f4b2.js"></script>
     <script src="./dist/bundle.js"></script>
 </head>
@@ -22,7 +21,9 @@
 
             <div class="form-group row">
                 <div class="col-xs-12 offset-md-2 col-md-10">
-                    <h4>Current players online: <span id="players-online"></span></h4>
+                    <h4>Current players online:
+                        <span id="players-online"></span>
+                    </h4>
                 </div>
             </div>
 
@@ -48,8 +49,8 @@
                     <small class="form-text text-muted-grey">Connection may take a while since the server may have to spin up!</small>
                 </div>
             </div>
- </div>
- </div>
+        </div>
+    </div>
 
     <div id="game"></div>
 
@@ -61,7 +62,7 @@
 
         function connect() {
             let connectButton = $('#connect-button');
-            
+
             connectButton.attr('disabled', true);
             connectButton.html('Connecting... <i class="fa fa-spinner fa-pulse fa-1x fa-fw"></i>');
 
@@ -69,7 +70,7 @@
             let playerTitle = $('#player-title').val();
 
             console.log(`Connected ${playerTag} ${playerTitle}.`);
-            
+
             arenaGame.connect({
                 name: playerTag,
                 title: playerTitle,

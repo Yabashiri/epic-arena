@@ -1,7 +1,7 @@
 {
-  "name": "flappy-bird-client",
-  "version": "1.0.0",
-  "description": "A flappy bird client for the Flappy Bird MMO",
+  "name": "epic-arena-client",
+  "version": "0.1.0",
+  "description": "Epic Arena client",
   "main": "dist/bundle.js",
   "scripts": {
     "test": "npm run lint",
@@ -16,14 +16,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dolanmiu/flappy-bird-client.git"
+    "url": "git+https://github.com/Yabashiri/epic-arena-client"
   },
-  "author": "Dolan Miu",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/dolanmiu/flappy-bird-client/issues"
-  },
-  "homepage": "https://github.com/dolanmiu/flappy-bird-client#readme",
+  "author": "Yabashiri",
   "dependencies": {
     "@types/node": "^9.3.0",
     "phaser": "^2.6.2"

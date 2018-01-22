@@ -13,24 +13,29 @@ namespace Arena.State {
     private static cost_images: Phaser.Group;
     private static cost_text: Phaser.Text;
 
+    private signal: Phaser.Signal = new Phaser.Signal();
+    private queue: Arena.queue = new Arena.queue();
+
     preload(): void {
       this.you = new player(
-        Arena.Global.connectionDetails,
         Arena.Global.Constants.char1,
         Arena.Global.Constants.char2,
-        Arena.Global.Constants.char3
+        Arena.Global.Constants.char3,
+        "you"
       );
       this.you.preloadImages(this.game);
 
       this.opponent = new player(
-        Arena.Global.connectionDetails,
         Arena.Global.Constants.char2,
         Arena.Global.Constants.char1,
-        Arena.Global.Constants.char3
+        Arena.Global.Constants.char3,
+        "opponent"
       );
       this.opponent.preloadImages(this.game);
       this.preloadChakra();
 
+      this.game.load.image("unknown", "assets/unknown.png");
+      this.game.load.image("dead", "assets/dead.png");
       this.game.load.image("battle", "assets/battle1.jpg");
       this.game.load.image("pokemon", "assets/pokemon.png");
     }
@@ -50,7 +55,10 @@ namespace Arena.State {
 
       this.you.deployPortraits(this.game, "left");
       this.opponent.deployPortraits(this.game, "right");
-      this.you.deploySkills(this.game);
+      this.you.deploySkills(this.game, this.signal);
+      this.you.createUnknown(this.game);
+      this.opponent.addEnemyListeners(this.game, this.signal);
+      this.signal.add(this.onSignalReceived, this);
 
       Play.initDescription(this);
       Play.initCost(this.game);
@@ -60,9 +68,36 @@ namespace Arena.State {
       this.chakra = new Chakra(); //если игрок ходит первый, то начнёт с одной чакрой
       this.chakra.addChakraUI(this.game);
 
+      this.blockUnusableSkills();
+
       this.initTurnText();
       if (Global.connectionDetails.turn == false) this.you.blockAllCharacters();
       this.onTurnSwitch();
+    }
+
+    public onSignalReceived() {
+      switch (arguments[0]) {
+        case "select":
+          this.queue.setActive(arguments[2], arguments[3]);
+          break;
+        case "target":
+          this.onSkillTarget(arguments[2]);
+          break;
+        default:
+          break;
+      }
+    }
+
+    private onSkillTarget(target: string): void {
+      let character = this.queue.getActiveCharacter;
+      let skill = this.queue.getActiveSkill;
+      const cost = this.you.getCost(character, skill);
+      this.you.blockCharacter(this.game, character, skill, this.signal);
+      this.chakra.reserveChakra(cost);
+      this.you.renewCharacter(this.game);
+      this.opponent.renewCharacter(this.game);
+      this.blockUnusableSkills();
+      this.queue.addTempSkill(target);
     }
 
     public initTurnText(): void {
@@ -77,20 +112,39 @@ namespace Arena.State {
 
     public onTurnSwitch(): void {
       this.turn_text.events.onInputUp.add(() => {
-        Global.socket.emit("turn-switch", Global.connectionDetails.opponentID);
+        Global.socket.emit(
+          "turn-switch",
+          Global.connectionDetails.opponentID,
+          this.queue.getQueue()
+        );
         Global.connectionDetails.turn = !Global.connectionDetails.turn;
         this.turn_text.setText(this.turnTextResolve());
         this.turn_text.inputEnabled = Global.connectionDetails.turn;
         this.you.blockAllCharacters();
+        this.useSkills();
+        if (this.opponent.checkDead() == true) {
+          Global.socket.emit("victory", Global.connectionDetails.opponentID);
+          this.victory();
+        }
       }, this);
 
-      Global.socket.on("turn-switch", () => {
+      Global.socket.on("turn-switch", (queue: Array<elem>) => {
         Global.connectionDetails.turn = !Global.connectionDetails.turn;
+        this.queue.setQueue(queue);
+        this.useOpponentSkills();
         this.turn_text.setText(this.turnTextResolve());
         this.turn_text.inputEnabled = Global.connectionDetails.turn;
-        this.chakra.addTurnChakra();
+        this.chakra.addTurnChakra(this.you.countAlive());
         this.chakra.updateUI();
-        this.you.unblockAllCharacters();
+        this.blockUnusableSkills();
+      });
+
+      Global.socket.on("disconnect", (id: string) => {
+        if (id == Global.connectionDetails.opponentID) this.victory();
+      });
+
+      Global.socket.on("defeat", () => {
+        this.defeat();
       });
     }
 
@@ -165,7 +219,6 @@ namespace Arena.State {
         while (chakra_needed > 0) {
           images.push(game.add.sprite(0, 0, Chakra.chakraResolve(i)));
           chakra_needed--;
-          console.log(cost.length);
         }
       }
 
@@ -180,6 +233,52 @@ namespace Arena.State {
       }
 
       this.cost_images.alignTo(this.cost_text, Phaser.RIGHT_TOP, 5, -2);
+    }
+
+    private blockUnusableSkills(): void {
+      let characters = this.you.getCharacters;
+      for (let i = 0; i <= 2; i++) {
+        if (characters[i].active_skill != -1 || characters[i].dead == true)
+          characters[i].blockSkills();
+        else {
+          for (let j = 0; j < characters[i].skills_number; j++) {
+            if (this.chakra.isEnoughChakra(characters[i].skills_list[j].cost))
+              characters[i].skills_list[j].makeUsable();
+            else characters[i].skills_list[j].makeUnusable();
+          }
+        }
+      }
+    }
+
+    private useSkills(): void {
+      let length = this.queue.getQueueLength();
+      for (let i = 0; i < length; i++) {
+        let item = this.queue.getQueueItem();
+        let target = this.opponent.findCharacter(item.target);
+        let character = this.you.findCharacter(item.character);
+        let skill = character.skills_list[item.skill];
+        target.damageHealth(this.game, skill.damage);
+        character.cancelActiveSkill();
+      }
+    }
+
+    private useOpponentSkills(): void {
+      let length = this.queue.getQueueLength();
+      for (let i = 0; i < length; i++) {
+        let item = this.queue.getQueueItem();
+        let target = this.you.findCharacter(item.target);
+        let character = this.opponent.findCharacter(item.character);
+        let skill = character.skills_list[item.skill];
+        target.damageHealth(this.game, skill.damage);
+      }
+    }
+
+    private victory(): void {
+      this.game.state.start("win");
+    }
+
+    private defeat(): void {
+      this.game.state.start("lose");
     }
   }
 }

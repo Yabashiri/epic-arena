@@ -2,17 +2,16 @@
 
 namespace Arena {
   export class player extends ArenaObject {
-    characters: Array<Arena.Characters.character>; //три персонажа
+    private characters: Array<Arena.Characters.character>; //три персонажа
+    private who: string;
 
-    constructor(
-      details: IConnectionDetails,
-      char1: string,
-      char2: string,
-      char3: string
-    ) {
+    constructor(char1: string, char2: string, char3: string, who: string) {
       super();
-      this.name = this.display_name = Global.Constants.player_name;
-      this.description = "Ultimate Gamer";
+      if (who == "you") this.yourDetails();
+      else this.opponentDetails();
+      if (this.display_name == "") this.display_name = "Un-named";
+      if (this.description == "") this.description = "Un-titled";
+      this.who = who;
       this.characters = [];
       this.characters.push(
         Arena.Characters.character.createCharacter(1, char1)
@@ -25,13 +24,31 @@ namespace Arena {
       );
     }
 
+    private yourDetails(): void {
+      this.name = "yabashiri";
+      this.display_name = Global.connectionDetails.name;
+      this.description = Global.connectionDetails.title;
+    }
+
+    private opponentDetails(): void {
+      this.name = "junko";
+      this.display_name = Global.connectionDetails.opponentName;
+      this.description = Global.connectionDetails.opponentTitle;
+    }
+
+    public get getCharacters(): Array<Arena.Characters.character> {
+      return this.characters;
+    }
+
     public damage(game: Phaser.Game, i: number) {
       this.characters[i].damageHealth(game, 20);
     }
 
     public preloadImages(game: Phaser.Game) {
       //предзагрузка картинок
-      this.loadImage(game, "assets/"); //аватар
+      if (this.who == "you")
+        game.load.image("yabashiri", "assets/yabashiri.png");
+      else game.load.image("junko", "assets/Junko.jpg");
       for (let i = 0; i <= 2; i++) {
         const path = `assets/characters/${this.characters[i].getName}/`;
         this.characters[i].loadImage(game, path);
@@ -107,7 +124,7 @@ namespace Arena {
       }
     }
 
-    public deploySkills(game: Phaser.Game) {
+    public deploySkills(game: Phaser.Game, signal: Phaser.Signal) {
       let y = Global.Constants.firstSkillY;
       for (let i = 0; i <= 2; i++) {
         let j = 0;
@@ -119,24 +136,80 @@ namespace Arena {
           `${this.characters[i].getName}-${j}`
         ));
         this.characters[i].skills_list[0].addTapEvent(game);
-        this.characters[i].skills_list[0].eventCost(game);
+        this.characters[i].skills_list[0].eventCost(game, signal);
         for (j = 1; j < 4; j++) {
           skill = this.characters[i].skills_list[j].setSprite = game.add
             .sprite(0, 0, `${this.characters[i].getName}-${j}`)
             .alignTo(skill, Phaser.RIGHT_TOP, 8);
           this.characters[i].skills_list[j].addTapEvent(game);
-          this.characters[i].skills_list[j].eventCost(game);
+          this.characters[i].skills_list[j].eventCost(game, signal);
         }
         y += Global.Constants.skillDistanceY;
       }
     }
 
     public blockAllCharacters(): void {
-      for (let i = 0; i <= 2; i++) this.characters[i].blockSkills();
+      for (let i = 0; i <= 2; i++) {
+        if (this.characters[i].dead == false) this.characters[i].blockSkills();
+      }
     }
 
     public unblockAllCharacters(): void {
       for (let i = 0; i <= 2; i++) this.characters[i].unblockSkills();
+    }
+
+    public findCharacter(char_name: string): Arena.Characters.character {
+      for (let i = 0; i <= 2; i++)
+        if (this.characters[i].getName == char_name) return this.characters[i];
+    }
+
+    public addEnemyListeners(game: Phaser.Game, signal: Phaser.Signal) {
+      for (let i = 0; i <= 2; i++) {
+        if (this.characters[i].dead == false)
+          this.characters[i].listenToSkillEnemy(signal, game);
+      }
+    }
+
+    public renewCharacter(game: Phaser.Game) {
+      for (let i = 0; i <= 2; i++) {
+        if (this.characters[i].dead == false)
+          this.characters[i].disableHighlight(game);
+      }
+    }
+
+    public getCost(character: string, skill: number): Array<number> {
+      return this.findCharacter(character).skills_list[skill].cost;
+    }
+
+    public blockCharacter(
+      game: Phaser.Game,
+      character: string,
+      skill: number,
+      signal: Phaser.Signal
+    ) {
+      let char = this.findCharacter(character);
+      char.active_skill = skill;
+      char.createActiveSkillSprite(game, skill);
+      //char.createCancelling(signal, game);
+    }
+
+    public createUnknown(game: Phaser.Game) {
+      for (let i = 0; i <= 2; i++) this.characters[i].createUnknown(game);
+    }
+
+    public checkDead(): boolean {
+      for (let i = 0; i <= 2; i++) {
+        if (this.characters[i].dead == false) return false;
+      }
+      return true;
+    }
+
+    public countAlive(): number {
+      let alive = 0;
+      for (let i = 0; i <= 2; i++) {
+        if (this.characters[i].dead == false) alive++;
+      }
+      return alive;
     }
   }
 }

@@ -4,6 +4,8 @@ namespace Arena {
     title: string;
     turn?: boolean;
     opponentID?: string;
+    opponentName?: string;
+    opponentTitle?: string;
   }
 
   export class Game extends Phaser.Game {
@@ -19,6 +21,8 @@ namespace Arena {
       );
 
       this.state.add("play", Arena.State.Play);
+      this.state.add("win", Arena.State.Win);
+      this.state.add("lose", Arena.State.Lose);
     }
 
     public connect(
@@ -34,12 +38,17 @@ namespace Arena {
         console.log(turn);
       });
 
-      Global.socket.on("start-battle", (opponent: string) => {
-        connectionDetails.opponentID = opponent;
-        this.state.start("play");
-        $("#game").show();
-        callback(Global.socket);
-      });
+      Global.socket.on(
+        "start-battle",
+        (opponent: string, opponentName: string, opponentTitle: string) => {
+          connectionDetails.opponentID = opponent;
+          connectionDetails.opponentName = opponentName;
+          connectionDetails.opponentTitle = opponentTitle;
+          this.state.start("play");
+          $("#game").show();
+          callback(Global.socket);
+        }
+      );
 
       Global.connectionDetails = connectionDetails;
     }

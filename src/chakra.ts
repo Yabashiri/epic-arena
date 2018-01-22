@@ -2,6 +2,7 @@ namespace Arena {
   export class Chakra {
     private chakraUI: Phaser.Group;
     private value: Array<number>;
+    private reserved: Array<number>;
 
     private taiText: Phaser.Text;
     private bloodText: Phaser.Text;
@@ -11,6 +12,7 @@ namespace Arena {
 
     constructor() {
       this.value = [0, 0, 0, 0];
+      this.reserved = [0, 0, 0, 0];
       if (Global.connectionDetails.turn == true) this.addRandomChakra();
     }
 
@@ -22,12 +24,14 @@ namespace Arena {
       this.value[this.generateRandomChakra()]++;
     }
 
-    public addTurnChakra(): void {
-      for (let i = 0; i <= 2; i++) this.addRandomChakra();
+    public addTurnChakra(alive: number): void {
+      for (let i = 0; i < alive; i++) this.addRandomChakra();
     }
 
-    public getTotalChakra(): number {
-      return this.value[0] + this.value[1] + this.value[2] + this.value[3];
+    public getTotalChakra(array: Array<number>): number {
+      let sum = 0;
+      for (let i = 0; i < array.length; i++) sum += array[i];
+      return sum;
     }
 
     public addChakraUI(game: Phaser.Game): void {
@@ -75,7 +79,12 @@ namespace Arena {
         .text(0, 0, "x" + this.value[3], Global.Constants.style_black)
         .alignTo(this.ninText, Phaser.RIGHT_TOP, 25);
       this.randomText = game.add
-        .text(0, 0, "x" + this.getTotalChakra(), Global.Constants.style_black)
+        .text(
+          0,
+          0,
+          "x" + this.getTotalChakra(this.value),
+          Global.Constants.style_black
+        )
         .alignTo(this.genText, Phaser.RIGHT_TOP, 25);
     }
 
@@ -92,7 +101,7 @@ namespace Arena {
       this.bloodText.setText("x" + this.value[1]);
       this.ninText.setText("x" + this.value[2]);
       this.genText.setText("x" + this.value[3]);
-      this.randomText.setText("x" + this.getTotalChakra());
+      this.randomText.setText("x" + this.getTotalChakra(this.value));
     }
 
     public static chakraResolve(n: number): string {
@@ -110,6 +119,29 @@ namespace Arena {
         default:
           return "random";
       }
+    }
+
+    public isEnoughChakra(cost: Array<number>): boolean {
+      for (let i = 0; i < cost.length; i++) {
+        if (this.value[i] < cost[i]) return false;
+      }
+      if (this.getTotalChakra(this.value) >= this.getTotalChakra(cost))
+        return true;
+      else return false;
+    }
+
+    private minusChakra(cost: Array<number>): void {
+      for (let i = 0; i < cost.length && i < 4; i++) this.value[i] -= cost[i];
+    }
+
+    private plusReserve(cost: Array<number>): void {
+      for (let i = 0; i < 4; i++) this.reserved[i] += cost[i];
+    }
+
+    public reserveChakra(cost: Array<number>): void {
+      this.minusChakra(cost);
+      //this.plusReserve(cost);
+      this.updateUI();
     }
   }
 }
