@@ -1,6 +1,6 @@
 # Epic Arena Client
 
-##What's implemented
+## What's implemented
 
 * Player names and titles
 * Turn switch
@@ -9,7 +9,7 @@
 * Single target damaging skills
 * Full game cycle
 
-##What's NOT implemented yet
+## What's NOT implemented yet
 
 * Random chakra usage
 * Skill classes with effects
